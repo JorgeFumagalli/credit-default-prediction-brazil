@@ -1,0 +1,25 @@
+# Core Data Science
+pandas>=2.0
+numpy>=1.24
+pyarrow>=14.0
+
+# Machine Learning
+scikit-learn>=1.3
+xgboost>=2.0
+
+# Deep Learning
+tensorflow>=2.15
+
+# Statistical Analysis
+statsmodels>=0.14
+
+# Visualization
+matplotlib>=3.7
+seaborn>=0.13
+
+# HTTP Requests
+requests>=2.31
+
+# Utilities
+pyyaml>=6.0
+joblib>=1.3
