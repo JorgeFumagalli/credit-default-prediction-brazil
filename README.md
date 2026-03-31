@@ -1,167 +1,182 @@
-# 📈 Credit Card Default Prediction in Brazil
+# 📈 Previsão da Inadimplência de Cartões de Crédito no Brasil
 
-[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Academic](https://img.shields.io/badge/Academic%20Project-USP%2FESALQ-red.svg)](https://esalq.usp.br/)
+Projeto de Data Science desenvolvido no contexto do **MBA em Data Science & Analytics (USP/ESALQ)**, com foco em **prever a taxa de inadimplência de cartões de crédito no Brasil** a partir de séries macroeconômicas oficiais.
 
-This repository contains an end-to-end Data Science project focused on predicting credit card default rates in Brazil using macroeconomic time-series data.
+A estrutura do repositório foi organizada em **apenas 2 scripts principais**, concentrando todo o pipeline do trabalho:
 
-The project was developed as part of the **MBA in Data Science & Analytics (USP/ESALQ)** and combines academic rigor with real-world credit risk modeling practices.
-
----
-
-## 📊 Project Overview
-
-The objective of this project is to analyze and forecast the **total credit card default rate** in Brazil using monthly macroeconomic indicators published by official institutions such as the **Banco Central do Brasil (BCB)** and **IBGE**.
-
-An automated pipeline was built to handle:
-- Data extraction and consolidation
-- Feature engineering and preprocessing
-- Collinearity diagnostics
-- Machine Learning and Deep Learning model training
-- Scenario-based performance comparison
+- `01_data_pipeline.py` → extração, preparação e diagnósticos estatísticos
+- `02_analysis_pipeline.py` → modelagem, diagnósticos finais e teste de Chow
 
 ---
 
-## 🎯 Objectives
+## 🎯 Objetivo
 
-- Compare supervised learning models for credit default forecasting
-- Evaluate model robustness under different economic regimes
-- Assess the impact of structural shocks (pandemic period)
-- Provide practical guidance for credit risk model selection
-- Balance predictive performance and interpretability
+Avaliar o desempenho de modelos estatísticos, de machine learning e de deep learning na previsão da inadimplência de cartões, comparando:
 
----
-
-## 💡 Key Insights
-
-### 1. Economic context matters more than model complexity
-- **LSTM** achieved superior performance in periods of high volatility
-- **SVR** outperformed deep learning models in stable economic environments
-
-### 2. Deep learning requires sufficient temporal depth
-- MLP models showed severe overfitting due to limited time-series length
-- LSTM remained competitive due to its sequence-aware architecture
-
-### 3. Linear models remain strong baselines
-- Linear Regression explained over 60% of default variability in the full sample
-- Simple models remain valuable for interpretability and governance
+- um cenário **FULL** com toda a série disponível;
+- um cenário **EXCL**, excluindo o período de **2019 a 2021** para investigar os efeitos de instabilidade estrutural.
 
 ---
 
-## 🚀 Main Results
+## 🧠 Pergunta central
 
-### Scenario FULL (2015–2025 | Includes Pandemic)
-
-| Model | MSE | R² | MAPE (%) | DA (%) | Notes |
-|------|-----|-----|----------|--------|-------|
-| **LSTM** ⭐ | **0.0179** | **0.7050** | **1.83** | 40.00 | Best under high volatility |
-| Linear Regression | 0.0210 | 0.6542 | 2.05 | 44.00 | Strong baseline |
-| XGBoost | 0.0228 | 0.6242 | 2.13 | 44.00 | Balanced performance |
-| SVR | 0.0572 | 0.0594 | 3.10 | 56.00 | Highest directional accuracy |
-| MLP | 14.9447 | -244.79 | 56.59 | 48.00 | Severe overfitting |
+Até que ponto variáveis macroeconômicas conseguem explicar e prever a inadimplência total de cartões de crédito no Brasil, e como a presença de um período estruturalmente instável afeta o desempenho dos modelos?
 
 ---
 
-### Scenario EXCL (Excluding 2019–2021)
+## 📊 Variável alvo
 
-| Model | MSE | R² | MAPE (%) | DA (%) | Notes |
-|------|-----|-----|----------|--------|-------|
-| **SVR** ⭐ | **0.0295** | **0.3559** | **2.26** | 35.29 | Best in stable regime |
-| Linear Regression | 0.0370 | 0.1924 | 2.57 | 47.06 | Consistent |
-| XGBoost | 0.1422 | -2.1029 | 5.40 | 41.18 | Loss of generalization |
-| LSTM | 0.2194 | -3.7858 | 7.50 | 47.06 | Data-hungry |
-| MLP | 0.9264 | -19.2102 | 12.36 | 41.18 | Inadequate |
+- `inadimpl_cartao_total`
 
----
+## 📌 Variáveis explicativas utilizadas
 
-## 📊 Data Description
-
-### Data Sources
-- **Banco Central do Brasil (BCB)** – SGS
-- **IBGE** – IPCA
-- Monthly data from **Jan/2015 to Jul/2025**
-
-### Target Variable
-- Total credit card default rate (%)
-
-### Predictors
-- Selic interest rate
-- IBC-Br (economic activity proxy)
-- Inflation (IPCA)
-- Household income commitment
+- `selic_mensal`
+- `ibcbr_dessaz`
+- `ibcbr_sem_ajuste`
+- `ipca_mensal`
+- `comprometimento_renda`
+- `endividamento_familias`
+- `inadimpl_cartao_total_lag1`
 
 ---
 
-## 🛠️ Tech Stack
+## 🗂️ Estrutura do pipeline
 
-- Python
-- Pandas, NumPy
-- Scikit-learn
+### 1) `01_data_pipeline.py`
+Responsável por:
+
+- baixar e consolidar as séries do **Banco Central do Brasil (SGS)**;
+- padronizar a base mensal;
+- gerar os datasets:
+  - `prepared/prepared_FULL.parquet`
+  - `prepared/prepared_EXCL.parquet`
+- executar os diagnósticos estatísticos da preparação:
+  - estatísticas descritivas;
+  - correlação e heatmap;
+  - scatter-matrix;
+  - VIF e tolerância;
+  - testes de normalidade dos resíduos;
+  - Box-Cox da variável alvo;
+  - stepwise opcional, se o pacote estiver disponível.
+
+### 2) `02_analysis_pipeline.py`
+Responsável por:
+
+- carregar os datasets preparados;
+- rodar a modelagem preditiva final;
+- gerar diagnósticos dos modelos;
+- executar o **teste de Breusch-Pagan**;
+- executar o **teste de Chow**;
+- comparar os cenários FULL e EXCL.
+
+---
+
+## 🤖 Modelos avaliados
+
+- Regressão Linear (OLS + Stepwise + Box-Cox)
+- ARIMA / SARIMAX
+- Random Forest
 - XGBoost
-- TensorFlow / Keras
-- Statsmodels
-- Matplotlib, Seaborn
+- MLP
+- LSTM
 
 ---
 
-## 📁 Project Structure
+## 📏 Métricas utilizadas
 
+- **MSE**
+- **R² ajustado**
+- **R² da variância**
+- **MAPE**
+- **Directional Accuracy (DA)**
+
+---
+
+## 🧪 Regras metodológicas principais
+
+- As variáveis macroeconômicas entram em **nível**, sem defasagens generalizadas.
+- É criada apenas a variável `inadimpl_cartao_total_lag1`.
+- O cenário **EXCL** remove o intervalo de **2019-01-01 a 2021-12-01**.
+- Para os modelos lineares:
+  - o stepwise é executado no conjunto completo;
+  - depois são removidas as variáveis:
+    - `endividamento_familias`
+    - `ibcbr_sem_ajuste`
+- Para ARIMA e demais modelos, essas variáveis também são retiradas conforme a regra metodológica do trabalho.
+
+---
+
+## 📁 Estrutura esperada do projeto
+
+```text
 credit-default-prediction-brazil/
 │
 ├── 01_data_pipeline.py
 ├── 02_analysis_pipeline.py
+├── README.md
+├── QUICKSTART.md
+├── requirements.txt
+├── LICENSE
 │
 ├── data/
 ├── prepared/
-├── colinearity_results/
-├── results_diagnostics/
-├── results_final/
-├── plots_diagnostics/
-│
-├── requirements.txt
-├── QUICKSTART.md
-├── README.md
-└── LICENSE
-
+├── results_preparation/
+└── results/
+```
 
 ---
 
-## ▶️ How to Run
+## ▶️ Como executar
 
-For a fast setup and execution guide, see:
+Consulte o arquivo:
 
-👉 **[QUICKSTART.md](QUICKSTART.md)**
+**`QUICKSTART.md`**
 
 ---
 
-## 👤 Author
+## 📤 Principais saídas geradas
+
+### Etapa 1 — preparação
+- `data/dados_consolidados_macro_credito.parquet`
+- `prepared/prepared_FULL.parquet`
+- `prepared/prepared_EXCL.parquet`
+- `results_preparation/*`
+
+### Etapa 2 — análise
+- `results/results_FULL_final.csv`
+- `results/results_EXCL_final.csv`
+- `results/results_FULL_EXCL_consolidated.csv`
+- `results/FULL_*_real_vs_pred.png`
+- `results/EXCL_*_real_vs_pred.png`
+- `results/chow_test_single_break.csv`
+- `results/chow_test_multiple_breaks_2019_2021.csv`
+- `results/diagnostics/*`
+
+---
+
+## 🛠️ Tech stack
+
+- Python
+- Pandas / NumPy
+- SciPy
+- Statsmodels
+- Scikit-learn
+- XGBoost
+- TensorFlow / Keras
+- Matplotlib
+- Requests
+
+---
+
+## 👤 Autor
 
 **Jorge Luiz Fumagalli**
 
-🎓 MBA in Data Science & Analytics – USP/ESALQ  
-🎓 BSc in Production Engineering  
-
-🔗 LinkedIn: https://www.linkedin.com/in/jorge-fumagalli-bb8975121/  
-🐙 GitHub: https://github.com/JorgeFumagalli  
+- LinkedIn: `https://www.linkedin.com/in/jorge-fumagalli/`
+- GitHub: `https://github.com/JorgeFumagalli`
 
 ---
 
-## 📄 License
+## 📄 Licença
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-## 📖 Citation
-
-If you use this project in academic or professional work, please cite:
-
-```bibtex
-@mastersthesis{fumagalli2026,
-  author  = {Fumagalli, Jorge Luiz},
-  title   = {Credit Card Default Prediction in Brazil Using Machine Learning},
-  school  = {USP/ESALQ},
-  year    = {2026}
-}
-⭐ If you find this project useful, consider giving it a star!
+Este projeto utiliza a licença **MIT**.

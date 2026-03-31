@@ -1,6 +1,7 @@
 # Core Data Science
 pandas>=2.0
 numpy>=1.24
+scipy>=1.10
 pyarrow>=14.0
 
 # Machine Learning
@@ -15,11 +16,14 @@ statsmodels>=0.14
 
 # Visualization
 matplotlib>=3.7
-seaborn>=0.13
 
 # HTTP Requests
 requests>=2.31
 
+# Optional diagnostics
+# pingouin>=0.5
+# statstests
+
 # Utilities
-pyyaml>=6.0
 joblib>=1.3
+pyyaml>=6.0
