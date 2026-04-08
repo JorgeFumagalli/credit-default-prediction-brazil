@@ -1,68 +1,34 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
+*.pyo
+*.pyd
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual Environment
+# Virtual environments
 venv/
-ENV/
-env/
+.env/
+.venv/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Data
-data/raw/*.xlsx
-data/raw/*.csv
-data/processed/*.parquet
-data/processed/*.csv
-prepared/*.parquet
-
-# Results
-results/
-results_diagnostics/
-results_final/
-colinearity_results/
-plots_diagnostics/
-
-# Models
-models/
-*.pkl
-*.h5
-*.hdf5
-
-# IDE
+# Jupyter / IDE
+.ipynb_checkpoints/
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
+.spyproject/
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
+# Pipeline outputs
+data/
+prepared/
+results/
+results_preparation/
+colinearity_results/
+results_diagnostics/
+results_final/
+plots_diagnostics/
+
 # Logs
 *.log
-
-# Temporary files
-*.tmp
-*.bak
-*.cache

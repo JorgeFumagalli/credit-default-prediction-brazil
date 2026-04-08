@@ -1,15 +1,14 @@
-# ⚡ Quickstart Guide
+# Quickstart Guide
 
 Este guia permite executar o pipeline completo do projeto em **2 etapas principais**.
 
 ---
 
-## 🚀 1. Setup do ambiente
+## 1. Setup do ambiente
 
 ```bash
 git clone https://github.com/JorgeFumagalli/credit-default-prediction-brazil.git
 cd credit-default-prediction-brazil
-
 python -m venv venv
 ```
 
@@ -23,14 +22,21 @@ source venv/bin/activate
 venv\Scripts\activate
 ```
 
-### Instalar dependências
+### Instalar dependências principais
 ```bash
 pip install -r requirements.txt
 ```
 
+### Instalar dependências opcionais para diagnósticos avançados
+```bash
+pip install pingouin statstests
+```
+
+> O projeto roda sem essas dependências opcionais, mas alguns diagnósticos complementares da etapa de preparação podem ser pulados.
+
 ---
 
-## ▶️ 2. Executar o pipeline
+## 2. Executar o pipeline
 
 ### Etapa 1 — extração, preparação e diagnósticos
 ```bash
@@ -42,9 +48,14 @@ python 01_data_pipeline.py
 python 02_analysis_pipeline.py
 ```
 
+### Execução completa
+```bash
+python 01_data_pipeline.py && python 02_analysis_pipeline.py
+```
+
 ---
 
-## 📁 Pastas e arquivos gerados
+## Pastas e arquivos gerados
 
 ### Após a Etapa 1
 - `data/dados_consolidados_macro_credito.parquet`
@@ -62,7 +73,7 @@ python 02_analysis_pipeline.py
 
 ---
 
-## 🔎 Arquivos principais para conferência
+## Arquivos principais para conferência
 
 ### Preparação
 - `prepared/prepared_FULL.parquet`
@@ -79,11 +90,13 @@ python 02_analysis_pipeline.py
 - `results/chow_test_single_break.csv`
 - `results/chow_test_multiple_breaks_2019_2021.csv`
 - `results/diagnostics/linear_coeffs_FULL.csv`
+- `results/diagnostics/linear_coeffs_EXCL.csv`
 - `results/diagnostics/xgb_importance_FULL.csv`
+- `results/diagnostics/xgb_importance_EXCL.csv`
 
 ---
 
-## ⏱️ Tempo esperado
+## Tempo esperado
 
 O tempo de execução pode variar conforme a máquina, mas em geral:
 
@@ -92,20 +105,29 @@ O tempo de execução pode variar conforme a máquina, mas em geral:
 
 ---
 
-## ⚠️ Observações
+## Observações
 
-- O pacote `scipy` é obrigatório.
-- Os pacotes `pingouin` e `statstests` **não são obrigatórios**.  
-  Se não estiverem instalados, os trechos opcionais de correlação com p-values, Shapiro-Francia e stepwise auxiliar serão apenas ignorados na etapa de preparação.
-- A etapa de modelagem utiliza TensorFlow, portanto pode ser mais lenta dependendo do ambiente.
+- `scipy` é obrigatório.
+- `pingouin` e `statstests` são opcionais.
+- A etapa de modelagem utiliza TensorFlow, então o tempo total pode variar bastante conforme o ambiente.
 
 ---
 
-## ✅ Ordem correta de execução
+## Ordem correta de execução
 
 Sempre rode nesta ordem:
 
 ```bash
 python 01_data_pipeline.py
 python 02_analysis_pipeline.py
+```
+
+### Observação sobre a extração de dados
+
+Se já existir uma base consolidada local em `data/dados_consolidados_macro_credito.parquet`, o `01_data_pipeline.py` pode reutilizá-la automaticamente para acelerar reexecuções e permitir testes offline.
+
+Para forçar uma nova extração diretamente do BCB/SGS, execute:
+
+```bash
+FORCE_BCB_DOWNLOAD=1 python 01_data_pipeline.py
 ```
