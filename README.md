@@ -1,35 +1,54 @@
-# Previsão da Inadimplência de Cartões de Crédito no Brasil
+# Credit Card Default Forecasting in Brazil
 
-Projeto de Data Science desenvolvido no contexto do **MBA em Data Science & Analytics (USP/ESALQ)**, com foco na **previsão da taxa de inadimplência de cartões de crédito no Brasil** a partir de séries macroeconômicas oficiais.
+Projeto de portfólio em Data Science desenvolvido a partir do Trabalho de Conclusão de Curso do MBA em Data Science & Analytics (USP/ESALQ), com foco na previsão da inadimplência agregada de cartões de crédito no Brasil a partir de séries macroeconômicas oficiais.
 
-O repositório foi reorganizado em **2 scripts principais**, concentrando o pipeline completo do trabalho:
+## Overview
 
-- `01_data_pipeline.py` → extração, preparação e diagnósticos estatísticos
-- `02_analysis_pipeline.py` → modelagem, diagnósticos dos modelos e teste de Chow
+This project investigates a practical forecasting question:
 
----
+**How can we predict aggregate credit card default in Brazil, and how does macroeconomic instability affect model performance?**
 
-## Objetivo
+To answer this, the study compares statistical, machine learning and deep learning models under two analytical scenarios:
 
-Avaliar o desempenho de modelos estatísticos, de machine learning e de deep learning na previsão da inadimplência de cartões, comparando:
-
-- um cenário **FULL**, com toda a série disponível;
-- um cenário **EXCL**, excluindo o período de **2019 a 2021** para investigar possíveis efeitos de instabilidade estrutural.
+- **FULL**: complete historical series
+- **EXCL**: exclusion of the 2019–2021 period to assess performance outside the most unstable macroeconomic regime
 
 ---
 
-## Pergunta central
+## Business Motivation
 
-**Até que ponto variáveis macroeconômicas conseguem explicar e prever a inadimplência total de cartões de crédito no Brasil, e como a presença de um período estruturalmente instável afeta o desempenho dos modelos?**
+Aggregate default is a relevant indicator for credit risk, planning, and economic intelligence. Anticipating its trajectory can support:
+
+- credit and provisioning decisions
+- risk monitoring in changing macroeconomic environments
+- comparison between interpretable and more complex predictive approaches
+- better understanding of the role of macroeconomic drivers in aggregate delinquency
 
 ---
 
-## Variável alvo
+## Objective
 
+Compare the predictive performance of six models applied to total credit card default in Brazil:
+
+- Linear Regression
+- ARIMA/SARIMAX
+- Random Forest
+- XGBoost
+- MLP
+- LSTM
+
+---
+
+## Data
+
+- **Source:** Central Bank of Brazil (SGS/BCB)
+- **Frequency:** Monthly
+- **Period:** Mar/2011 to Jul/2025
+
+### Target variable
 - `inadimpl_cartao_total`
 
-## Variáveis explicativas utilizadas
-
+### Main explanatory variables
 - `selic_mensal`
 - `ibcbr_dessaz`
 - `ibcbr_sem_ajuste`
@@ -40,99 +59,117 @@ Avaliar o desempenho de modelos estatísticos, de machine learning e de deep lea
 
 ---
 
-## Fontes de dados
+## Methodological Design
 
-As séries são obtidas a partir de bases oficiais, com foco no **Banco Central do Brasil (SGS/BCB)**, em frequência mensal.
+The repository is organized around two main scripts:
 
-O pipeline coleta e consolida automaticamente as séries configuradas, gerando a base final utilizada na modelagem.
+### `01_data_pipeline.py`
+Responsible for:
+- extracting official macroeconomic series from BCB/SGS
+- validating and consolidating the analytical base
+- generating the FULL and EXCL scenarios
+- running preparation-stage statistical diagnostics
+- exporting intermediate files for reproducibility
 
----
+### `02_analysis_pipeline.py`
+Responsible for:
+- training and evaluating the final models in FULL and EXCL
+- producing consolidated comparison tables
+- generating figures and result summaries
+- running statistical diagnostics for the linear specification
+- applying the Chow test for structural break analysis
 
-## Estrutura do pipeline
-
-### 1) `01_data_pipeline.py`
-
-Responsável por:
-
-- baixar e consolidar as séries do Banco Central do Brasil (SGS);
-- padronizar a base mensal;
-- gerar os datasets:
-  - `prepared/prepared_FULL.parquet`
-  - `prepared/prepared_EXCL.parquet`
-- executar os diagnósticos estatísticos da etapa de preparação:
-  - estatísticas descritivas;
-  - correlação e heatmap;
-  - scatter-matrix;
-  - VIF e tolerância;
-  - testes de normalidade dos resíduos;
-  - Box-Cox da variável alvo;
-  - stepwise opcional;
-  - Shapiro-Francia opcional;
-  - correlação com `pingouin` opcional.
-
-### 2) `02_analysis_pipeline.py`
-
-Responsável por:
-
-- carregar os datasets preparados;
-- rodar a modelagem preditiva final nos cenários FULL e EXCL;
-- gerar diagnósticos dos modelos;
-- executar o teste de Breusch-Pagan;
-- executar o teste de Chow para quebra estrutural;
-- comparar os cenários FULL e EXCL;
-- salvar tabelas e gráficos consolidados para uso no TCC.
+### Key methodological decisions
+- time-aware train/test split
+- use of only the target `lag1` in the final specification
+- stepwise variable selection for the linear model
+- Box-Cox transformation in the optimized linear specification
+- exclusion of `endividamento_familias` and `ibcbr_sem_ajuste` from the final linear model after diagnostics
+- comparison across scenarios to assess sensitivity to structural instability
 
 ---
 
-## Modelos avaliados
+## Main Results
 
-- Regressão Linear (OLS + Stepwise + Box-Cox)
-- ARIMA / SARIMAX
-- Random Forest
+### FULL scenario
+| Model | Variance R² | Adjusted R² | MSE | MAPE (%) | DA (%) |
+|---|---:|---:|---:|---:|---:|
+| ARIMA/SARIMAX | **0.8887** | **0.8695** | **0.0149** | **1.81** | 50.00 |
+| Linear | 0.8388 | 0.8287 | 0.0177 | 1.87 | 44.12 |
+| XGBoost | 0.7862 | 0.7497 | 0.0263 | 2.26 | 47.06 |
+| Random Forest | 0.7831 | 0.7457 | 0.0398 | 3.01 | 44.12 |
+| MLP | 0.5936 | 0.5235 | 0.7809 | 12.44 | 32.35 |
+| LSTM | 0.5064 | 0.4213 | 0.9465 | 15.53 | 47.06 |
+
+### EXCL scenario
+| Model | Variance R² | Adjusted R² | MSE | MAPE (%) | DA (%) |
+|---|---:|---:|---:|---:|---:|
+| Linear | **0.7793** | **0.7708** | **0.0171** | **1.74** | 37.04 |
+| ARIMA/SARIMAX | 0.7593 | 0.7046 | 0.0230 | 1.98 | 51.85 |
+| Random Forest | 0.6621 | 0.5853 | 0.0390 | 2.98 | 33.33 |
+| MLP | 0.6150 | 0.5275 | 0.4877 | 10.89 | 44.44 |
+| LSTM | 0.6067 | 0.5173 | 0.4329 | 9.02 | **62.96** |
+| XGBoost | 0.5559 | 0.4550 | 0.0302 | 2.50 | 44.44 |
+
+### Executive interpretation
+- In the **FULL** scenario, **ARIMA/SARIMAX** delivered the strongest overall performance.
+- In the **EXCL** scenario, **Linear Regression** became the leading model.
+- The results suggest that temporal structure and macroeconomic regime were central to predictive performance.
+- More complex architectures did not consistently outperform statistical benchmarks.
+
+---
+
+## Structural Break Evidence
+
+The project also tested whether the pandemic period represented a relevant break in the series dynamics.
+
+### Chow test highlights
+- **Jan/2019:** not significant
+- **Jan/2020:** statistically significant
+- **Jan/2021:** statistically significant
+
+This supports the decision to compare FULL and EXCL scenarios rather than relying on a single modeling environment.
+
+---
+
+## Key Insights
+
+1. **Model performance depends on the economic regime being analyzed.**  
+   The leading model changed when the unstable period was removed.
+
+2. **Temporal structure mattered more than model complexity in this application.**  
+   Statistical approaches remained highly competitive.
+
+3. **Interpretability remains valuable.**  
+   The linear model combined strong performance with clearer economic reading.
+
+4. **Methodological rigor improves portfolio quality.**  
+   Diagnostics, structural break testing and scenario comparison strengthen the analytical narrative.
+
+---
+
+## Tech Stack
+
+- Python
+- Pandas
+- NumPy
+- Statsmodels
+- Scikit-learn
 - XGBoost
-- MLP
-- LSTM
+- TensorFlow / Keras
+- Matplotlib
 
 ---
 
-## Métricas utilizadas
-
-- **MSE**
-- **R² ajustado**
-- **R² da variância**
-- **MAPE**
-- **Directional Accuracy (DA)**
-
----
-
-## Regras metodológicas principais
-
-- As variáveis macroeconômicas entram em nível, sem defasagens generalizadas.
-- É criada apenas a variável `inadimpl_cartao_total_lag1`.
-- Não há imputação por forward fill.
-- O cenário **EXCL** remove o intervalo de `2019-01-01` a `2021-12-01`.
-- Para os modelos lineares:
-  - o stepwise é executado no conjunto completo;
-  - depois são removidas as variáveis:
-    - `endividamento_familias`
-    - `ibcbr_sem_ajuste`
-- Para ARIMA e demais modelos, essas variáveis também são retiradas conforme a regra metodológica do trabalho.
-
----
-
-## Estrutura esperada do projeto
+## Repository Structure
 
 ```text
 credit-default-prediction-brazil/
-│
 ├── 01_data_pipeline.py
 ├── 02_analysis_pipeline.py
 ├── README.md
 ├── QUICKSTART.md
 ├── requirements.txt
-├── .gitignore
-├── LICENSE
-│
 ├── data/
 ├── prepared/
 ├── results_preparation/
@@ -141,154 +178,88 @@ credit-default-prediction-brazil/
 
 ---
 
-## Instalação
+## Quick Start
 
-Clone o repositório:
-
+### 1. Clone the repository
 ```bash
 git clone https://github.com/JorgeFumagalli/credit-default-prediction-brazil.git
 cd credit-default-prediction-brazil
 ```
 
-Crie e ative um ambiente virtual:
-
-```bash
+### 2. Create and activate a virtual environment
+**Windows (PowerShell):**
+```powershell
 python -m venv venv
+.\venv\Scripts\Activate.ps1
 ```
 
-### Linux / Mac
-```bash
-source venv/bin/activate
-```
-
-### Windows
-```bash
+**Windows (CMD):**
+```cmd
+python -m venv venv
 venv\Scripts\activate
 ```
 
-Instale as dependências principais:
+**Linux / macOS:**
+```bash
+python -m venv venv
+source venv/bin/activate
+```
 
+### 3. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-## Dependências opcionais para diagnósticos avançados
-
-Algumas saídas complementares do `01_data_pipeline.py` dependem de bibliotecas opcionais:
-
-```bash
-pip install pingouin statstests
-```
-
-### O que acontece se elas não estiverem instaladas?
-
-O pipeline principal continua funcionando, mas algumas análises adicionais podem ser puladas, como:
-
-- `rcorr` com `pingouin`;
-- teste de **Shapiro-Francia**;
-- stepwise auxiliar baseado no pacote `statstests`.
-
-Isso não impede a execução do projeto, mas reduz a completude dos diagnósticos estatísticos da etapa de preparação.
-
----
-
-
-### Observação sobre a extração de dados
-
-Se já existir uma base consolidada local em `data/dados_consolidados_macro_credito.parquet`, o `01_data_pipeline.py` pode reutilizá-la automaticamente para acelerar reexecuções e permitir testes offline.
-
-Para forçar uma nova extração diretamente do BCB/SGS, execute:
-
-```bash
-FORCE_BCB_DOWNLOAD=1 python 01_data_pipeline.py
-```
-
-## Como executar
-
-### Execução completa
-
-```bash
-python 01_data_pipeline.py && python 02_analysis_pipeline.py
-```
-
-### Execução em etapas
-
-#### Etapa 1 — extração, preparação e diagnósticos
+### 4. Run the pipeline
 ```bash
 python 01_data_pipeline.py
-```
-
-#### Etapa 2 — modelagem, comparações e teste de Chow
-```bash
 python 02_analysis_pipeline.py
 ```
 
 ---
 
-## Principais saídas geradas
+## Outputs
 
-### Etapa 1 — preparação
-
-- `data/dados_consolidados_macro_credito.parquet`
-- `prepared/prepared_FULL.parquet`
-- `prepared/prepared_EXCL.parquet`
-- `results_preparation/*`
-
-### Etapa 2 — análise
-
-- `results/results_FULL_final.csv`
-- `results/results_EXCL_final.csv`
-- `results/results_FULL_EXCL_consolidated.csv`
-- `results/FULL_*_real_vs_pred.png`
-- `results/EXCL_*_real_vs_pred.png`
-- `results/FULL_best_real_vs_pred.png`
-- `results/EXCL_best_real_vs_pred.png`
-- `results/FULL_vs_EXCL_inadimplencia.png`
-- `results/PANEL_FULL_EXCL_metrics.png`
-- `results/chow_test_single_break.csv`
-- `results/chow_test_multiple_breaks_2019_2021.csv`
-- `results/diagnostics/*`
+The project generates:
+- prepared datasets for FULL and EXCL
+- consolidated comparison tables
+- actual vs. predicted plots by model
+- metric comparison figures
+- statistical diagnostic outputs
+- structural break test results
 
 ---
 
-## Destaques do projeto
+## Why this project matters in my portfolio
 
-Este projeto combina:
-
-- modelagem estatística;
-- machine learning;
-- deep learning;
-- diagnóstico de colinearidade;
-- testes de normalidade dos resíduos;
-- teste de heterocedasticidade;
-- teste de quebra estrutural;
-- comparação entre regimes econômicos distintos.
-
-Além da previsão em si, o trabalho busca equilibrar **desempenho preditivo**, **interpretação econômica** e **coerência metodológica**.
+This project demonstrates:
+- reproducible analytical pipeline design
+- integration between statistical modeling and machine learning
+- critical comparison between simple and complex models
+- business-oriented interpretation of technical results
+- application to risk, credit and forecasting problems
 
 ---
 
-## Aplicação acadêmica
+## Limitations and Next Steps
 
-O repositório foi desenvolvido como base analítica para o TCC do MBA em Data Science & Analytics, servindo tanto para:
+### Limitations
+- monthly series with a moderate number of observations
+- aggregate default instead of transaction-level behavior
+- limited macroeconomic feature set
 
-- reprodução do pipeline completo;
-- geração de tabelas e gráficos para o trabalho;
-- documentação da metodologia utilizada.
+### Next steps
+- expand the exogenous variable set
+- test hybrid and Bayesian approaches
+- evaluate rolling-window stability
+- explore forecast intervals and regime-aware calibration
 
 ---
 
-## Autor
+## Author
 
 **Jorge Luiz Fumagalli**
 
 - LinkedIn: https://www.linkedin.com/in/jorge-fumagalli/
 - GitHub: https://github.com/JorgeFumagalli
 
----
-
-## Licença
-
-Este projeto está licenciado sob a licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
